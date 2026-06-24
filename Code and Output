@@ -1,0 +1,125 @@
+STUDENT PERFORMANCE PREDICTION SYSTEM
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load Dataset
+df = pd.read_csv("C:/Student/Dataset/student_performance_data.csv")
+print(df.columns)
+Index(['student_id', 'gender', 'study_hours_per_day', 'attendance_percentage',
+       'assignment_score', 'midterm_score', 'final_exam_score',
+       'participation_score', 'internet_access', 'extra_classes',
+       'parent_education', 'sleep_hours', 'overall_score', 'grade'],
+      dtype='str')
+# Create Pass/Fail Target
+df["Result"] = df["final_exam_score"].apply(lambda x: 1 if x >= 50 else 0)
+
+# Features
+X = df[["study_hours_per_day","attendance_percentage", "sleep_hours","assignment_score","overall_score"]]
+
+# Target
+y = df["Result"]
+
+# Train Test Split
+X_train, X_test, y_train, y_test = train_test_split(X, y,test_size=0.2,random_state=42)
+
+# Model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+# Training
+model.fit(X_train, y_train)
+
+# Prediction
+y_pred = model.predict(X_test)
+
+# Accuracy
+print("Accuracy:", accuracy_score(y_test, y_pred))
+Accuracy: 0.7965
+print("\nClassification Report")
+print(classification_report(y_test, y_pred))
+Classification Report
+              precision    recall  f1-score   support
+
+           0       0.70      0.55      0.62       598
+           1       0.82      0.90      0.86      1402
+
+    accuracy                           0.80      2000
+   macro avg       0.76      0.73      0.74      2000
+weighted avg       0.79      0.80      0.79      2000
+print("\nConfusion Matrix")
+print(confusion_matrix(y_test, y_pred))
+Confusion Matrix
+[[ 329  269]
+ [ 138 1264]]
+# EDA & VISUALIZATION
+
+# Study Hours vs Final Exam Score
+plt.figure(figsize=(8,5))
+sns.scatterplot(x=df["study_hours_per_day"],y=df["final_exam_score"])
+plt.title("Study Hours vs Final Exam Score")
+plt.show()
+
+
+# Attendance vs Result
+plt.figure(figsize=(6,4))
+sns.boxplot(x=df["Result"],y=df["attendance_percentage"])
+plt.title("Attendance vs Result")
+plt.show()
+
+
+# Pass / Fail Count
+plt.figure(figsize=(5,4))
+sns.countplot(x=df["Result"])
+plt.title("Pass / Fail Distribution")
+plt.xticks([0,1],["Fail","Pass"])
+plt.show()
+
+
+
+# Correlation Heatmap
+plt.figure(figsize=(8,6))
+sns.heatmap(df.select_dtypes(include=np.number).corr(),annot=True,cmap="coolwarm")
+plt.title("Feature Correlation")
+plt.show()
+
+# FEATURE IMPORTANCE
+
+importance = pd.DataFrame({"Feature": X.columns,"Importance": model.feature_importances_})
+importance = importance.sort_values(by="Importance",ascending=False)
+print("\nFeature Importance")
+print(importance)
+Feature Importance
+                 Feature  Importance
+4          overall_score    0.467941
+3       assignment_score    0.170890
+1  attendance_percentage    0.128736
+0    study_hours_per_day    0.117791
+2            sleep_hours    0.114641
+
+plt.figure(figsize=(8,5))
+sns.barplot(x="Importance", y="Feature",data=importance)
+plt.title("Feature Importance")
+plt.show()
+
+
+
+# NEW STUDENT PREDICTION
+
+new_student = pd.DataFrame({"study_hours_per_day":[5],
+    "attendance_percentage":[85],
+    "sleep_hours":[7],
+    "assignment_score":[80],
+    "overall_score":[75]
+})
+
+prediction = model.predict(new_student)
+
+if prediction[0] == 1:
+    print("\nPrediction : PASS")
+else:
+    print("\nPrediction : FAIL")
+Prediction : PASS
