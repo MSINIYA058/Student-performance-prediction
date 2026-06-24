@@ -10,7 +10,7 @@ This project predicts student academic performance using Machine Learning techni
 -Scikit-Learn
 -Matplotlib
 
-##Features
+## Features
 -Data preprocessing
 -Feature Selection
 -Model Training
